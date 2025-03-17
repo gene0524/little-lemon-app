@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './HomePage';
 import BookingPage from './BookingPage';
@@ -8,16 +8,19 @@ function Main() {
   const availableTimesReducer = (state, action) => {
     switch(action.type) {
       case 'UPDATE_TIMES':
-        // For now, return the same times regardless of date
-        return state;
+        // Use the fetchAPI to get available times for the selected date
+        // Check if window.fetchAPI exists (to handle testing environments)
+        return window.fetchAPI ? window.fetchAPI(new Date(action.payload)) : state;
       default:
         return state;
     }
   };
 
-  // Initialize times function
+  // Initialize times function - fetch available times for today
   const initializeTimes = () => {
-    return ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+    // Create today's date and fetch available times
+    // Check if window.fetchAPI exists (to handle testing environments)
+    return window.fetchAPI ? window.fetchAPI(new Date()) : ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
   };
 
   // Use the reducer for available times

@@ -12,6 +12,7 @@ function BookingForm({ availableTimes, updateTimes }) {
   });
   
   const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [formErrors, setFormErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,14 +27,50 @@ function BookingForm({ availableTimes, updateTimes }) {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.date) errors.date = "Date is required";
+    if (!formData.time) errors.time = "Time is required";
+    if (!formData.name) errors.name = "Name is required";
+    if (!formData.email) errors.email = "Email is required";
+    if (!formData.phone) errors.phone = "Phone is required";
+    
+    return errors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
     
-    // Show confirmation message instead of using alert
-    setConfirmationMessage('Booking submitted! You will receive a confirmation shortly.');
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
     
-    // Here you would typically send the data to a server
+    // Clear any previous errors
+    setFormErrors({});
+    
+    // Submit the data to the API
+    // Access the submitAPI function from the window object
+    const success = window.submitAPI ? window.submitAPI(formData) : true;
+    
+    if (success) {
+      setConfirmationMessage('Booking submitted! You will receive a confirmation shortly.');
+      // Reset form after successful submission
+      setFormData({
+        date: '',
+        time: '',
+        guests: 1,
+        occasion: 'Birthday',
+        name: '',
+        email: '',
+        phone: ''
+      });
+    } else {
+      setConfirmationMessage('There was an error submitting your booking. Please try again.');
+    }
   };
 
   return (
@@ -47,7 +84,9 @@ function BookingForm({ availableTimes, updateTimes }) {
           value={formData.date} 
           onChange={handleChange}
           required 
+          aria-invalid={formErrors.date ? "true" : "false"}
         />
+        {formErrors.date && <span className="error-message">{formErrors.date}</span>}
       </div>
 
       <div className="form-group">
@@ -58,12 +97,14 @@ function BookingForm({ availableTimes, updateTimes }) {
           value={formData.time} 
           onChange={handleChange}
           required
+          aria-invalid={formErrors.time ? "true" : "false"}
         >
           <option value="">Select a time</option>
           {availableTimes.map(time => (
             <option key={time} value={time}>{time}</option>
           ))}
         </select>
+        {formErrors.time && <span className="error-message">{formErrors.time}</span>}
       </div>
 
       <div className="form-group">
@@ -102,7 +143,9 @@ function BookingForm({ availableTimes, updateTimes }) {
           value={formData.name} 
           onChange={handleChange}
           required 
+          aria-invalid={formErrors.name ? "true" : "false"}
         />
+        {formErrors.name && <span className="error-message">{formErrors.name}</span>}
       </div>
 
       <div className="form-group">
@@ -114,7 +157,9 @@ function BookingForm({ availableTimes, updateTimes }) {
           value={formData.email} 
           onChange={handleChange}
           required 
+          aria-invalid={formErrors.email ? "true" : "false"}
         />
+        {formErrors.email && <span className="error-message">{formErrors.email}</span>}
       </div>
 
       <div className="form-group">
@@ -126,7 +171,9 @@ function BookingForm({ availableTimes, updateTimes }) {
           value={formData.phone} 
           onChange={handleChange}
           required 
+          aria-invalid={formErrors.phone ? "true" : "false"}
         />
+        {formErrors.phone && <span className="error-message">{formErrors.phone}</span>}
       </div>
 
       <button type="submit" className="reserve-button">Make Your Reservation</button>

@@ -522,3 +522,30 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Add these styles to your existing App.css file */
+
+/* Form validation styles */
+.error-message {
+  color: #ff0000;
+  font-size: 14px;
+  margin-top: 5px;
+  display: block;
+}
+
+.form-group input:invalid,
+.form-group select:invalid,
+.form-group [aria-invalid="true"] {
+  border: 1px solid #ff0000;
+}
+
+/* Updated confirmation message styles */
+.confirmation-message {
+  grid-column: span 2;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--primary-green);
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}

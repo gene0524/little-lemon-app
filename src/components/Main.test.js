@@ -1,53 +1,84 @@
-// Define the functions that we want to test directly in the test file
-// This avoids importing Main.js which has react-router-dom dependencies
+// Define the default times array
+const defaultTimes = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
-// Reducer function for available times
+// Create mock functions explicitly returning arrays
+const mockFetchAPI = jest.fn(() => [...defaultTimes]);
+
+// Add the mock functions to the window object
+window.fetchAPI = mockFetchAPI;
+window.submitAPI = jest.fn(() => true);
+
+// Define the reducer function as it would appear in Main.js
 const availableTimesReducer = (state, action) => {
-    switch(action.type) {
-      case 'UPDATE_TIMES':
-        // For now, return the same times regardless of date
-        return state;
-      default:
-        return state;
-    }
-  };
-  
-  // Initialize times function
-  const initializeTimes = () => {
-    return ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
-  };
-  
-  describe('Main component reducer functions', () => {
-    test('initializeTimes returns the expected initial times', () => {
-      // Call the function
-      const initialTimes = initializeTimes();
-      
-      // Check the result matches expected format and content
-      expect(Array.isArray(initialTimes)).toBe(true);
-      expect(initialTimes.length).toBeGreaterThan(0);
-      
-      // Check for specific times
-      expect(initialTimes).toEqual(['17:00', '18:00', '19:00', '20:00', '21:00', '22:00']);
-    });
-  
-    test('updateTimes returns the same value provided in the state', () => {
-      // Create sample state and action
-      const currentState = ['17:00', '18:00', '19:00'];
-      const action = { type: 'UPDATE_TIMES', payload: '2023-01-01' };
-      
-      // Call the reducer function
-      const newState = availableTimesReducer(currentState, action);
-      
-      // For now, it should return the same state as specified in the instructions
-      expect(newState).toEqual(currentState);
-    });
-  
-    test('reducer returns unchanged state for unknown action types', () => {
-      const currentState = ['17:00', '18:00', '19:00'];
-      const action = { type: 'UNKNOWN_ACTION' };
-      
-      const newState = availableTimesReducer(currentState, action);
-      
-      expect(newState).toEqual(currentState);
-    });
+  switch(action.type) {
+    case 'UPDATE_TIMES':
+      // Use the fetchAPI to get available times for the selected date
+      return window.fetchAPI(new Date(action.payload));
+    default:
+      return state;
+  }
+};
+
+// Initialize times function
+const initializeTimes = () => {
+  // Use fetchAPI with today's date
+  return window.fetchAPI(new Date());
+};
+
+describe('Main component reducer functions', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    jest.clearAllMocks();
+    
+    // Ensure mockFetchAPI returns an array by default
+    mockFetchAPI.mockImplementation(() => [...defaultTimes]);
   });
+
+  test('initializeTimes returns the expected initial times from fetchAPI', () => {
+    // Call the function
+    const initialTimes = initializeTimes();
+    
+    // Debug output to see what's happening
+    console.log('initialTimes type:', typeof initialTimes);
+    console.log('initialTimes isArray:', Array.isArray(initialTimes));
+    console.log('initialTimes value:', initialTimes);
+    
+    // Check that fetchAPI was called
+    expect(mockFetchAPI).toHaveBeenCalled();
+    
+    // Check the result matches expected format and content
+    expect(Array.isArray(initialTimes)).toBe(true);
+    expect(initialTimes.length).toBeGreaterThan(0);
+    
+    // Check it returned what we mocked from fetchAPI
+    expect(initialTimes).toEqual(defaultTimes);
+  });
+
+  test('updateTimes returns times from fetchAPI based on date', () => {
+    // Mock a specific return value for a specific date
+    const testDate = '2023-01-01';
+    const expectedTimes = ['10:00', '11:00', '12:00'];
+    mockFetchAPI.mockReturnValueOnce([...expectedTimes]);
+    
+    // Create action
+    const action = { type: 'UPDATE_TIMES', payload: testDate };
+    
+    // Call the reducer function
+    const newState = availableTimesReducer([], action);
+    
+    // Check that fetchAPI was called with the correct date object
+    expect(mockFetchAPI).toHaveBeenCalledWith(expect.any(Date));
+    
+    // Check that it returned what we mocked
+    expect(newState).toEqual(expectedTimes);
+  });
+
+  test('reducer returns unchanged state for unknown action types', () => {
+    const currentState = ['17:00', '18:00', '19:00'];
+    const action = { type: 'UNKNOWN_ACTION' };
+    
+    const newState = availableTimesReducer(currentState, action);
+    
+    expect(newState).toEqual(currentState);
+  });
+});
