@@ -3,24 +3,23 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './HomePage';
 import BookingPage from './BookingPage';
 
-// Define the reducer function for available times
-const availableTimesReducer = (state, action) => {
-  switch(action.type) {
-    case 'UPDATE_TIMES':
-      // For now, return the same times regardless of date as specified in instructions
-      return state;
-    default:
-      return state;
-  }
-};
-
-// Initialize times function
-const initializeTimes = () => {
-  // Return initial available times
-  return ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
-};
-
 function Main() {
+  // Reducer function for available times
+  const availableTimesReducer = (state, action) => {
+    switch(action.type) {
+      case 'UPDATE_TIMES':
+        // For now, return the same times regardless of date
+        return state;
+      default:
+        return state;
+    }
+  };
+
+  // Initialize times function
+  const initializeTimes = () => {
+    return ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+  };
+
   // Use the reducer for available times
   const [availableTimes, dispatch] = useReducer(availableTimesReducer, null, initializeTimes);
   

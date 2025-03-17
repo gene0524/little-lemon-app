@@ -10,6 +10,8 @@ function BookingForm({ availableTimes, updateTimes }) {
     email: '',
     phone: ''
   });
+  
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,12 +29,15 @@ function BookingForm({ availableTimes, updateTimes }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
+    
+    // Show confirmation message instead of using alert
+    setConfirmationMessage('Booking submitted! You will receive a confirmation shortly.');
+    
     // Here you would typically send the data to a server
-    alert('Booking submitted! You will receive a confirmation shortly.');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="booking-form">
+    <form onSubmit={handleSubmit} className="booking-form" aria-label="Reservation Form">
       <div className="form-group">
         <label htmlFor="date">Choose date:</label>
         <input 
@@ -85,8 +90,6 @@ function BookingForm({ availableTimes, updateTimes }) {
         >
           <option value="Birthday">Birthday</option>
           <option value="Anniversary">Anniversary</option>
-          <option value="Business">Business</option>
-          <option value="Other">Other</option>
         </select>
       </div>
 
@@ -127,6 +130,12 @@ function BookingForm({ availableTimes, updateTimes }) {
       </div>
 
       <button type="submit" className="reserve-button">Make Your Reservation</button>
+      
+      {confirmationMessage && (
+        <div className="confirmation-message" role="alert">
+          {confirmationMessage}
+        </div>
+      )}
     </form>
   );
 }
