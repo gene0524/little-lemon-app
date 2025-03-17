@@ -2,7 +2,7 @@ import React from 'react';
 import BookingForm from './BookingForm';
 import BookingSlot from './BookingSlot';
 
-function BookingPage({ availableTimes, updateTimes }) {
+function BookingPage({ availableTimes, updateTimes, submitForm }) {
   return (
     <main className="booking-page">
       <section className="booking-hero">
@@ -23,6 +23,7 @@ function BookingPage({ availableTimes, updateTimes }) {
         <BookingForm 
           availableTimes={availableTimes} 
           updateTimes={updateTimes} 
+          submitForm={submitForm}
         />
       </section>
     </main>

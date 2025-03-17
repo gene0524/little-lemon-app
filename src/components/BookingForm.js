@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function BookingForm({ availableTimes, updateTimes }) {
+function BookingForm({ availableTimes, updateTimes, submitForm }) {
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -11,8 +11,8 @@ function BookingForm({ availableTimes, updateTimes }) {
     phone: ''
   });
   
-  const [confirmationMessage, setConfirmationMessage] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const [submissionStatus, setSubmissionStatus] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,34 +42,40 @@ function BookingForm({ availableTimes, updateTimes }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // For debugging
+    console.log("Form submission attempted");
+    console.log("Form data:", formData);
+    
     // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
+      console.log("Validation errors:", errors);
       setFormErrors(errors);
+      setSubmissionStatus('Validation failed - see errors above');
       return;
     }
     
     // Clear any previous errors
     setFormErrors({});
     
-    // Submit the data to the API
-    // Access the submitAPI function from the window object
-    const success = window.submitAPI ? window.submitAPI(formData) : true;
-    
-    if (success) {
-      setConfirmationMessage('Booking submitted! You will receive a confirmation shortly.');
-      // Reset form after successful submission
-      setFormData({
-        date: '',
-        time: '',
-        guests: 1,
-        occasion: 'Birthday',
-        name: '',
-        email: '',
-        phone: ''
-      });
-    } else {
-      setConfirmationMessage('There was an error submitting your booking. Please try again.');
+    try {
+      // Check if submitForm is a function
+      if (typeof submitForm !== 'function') {
+        console.error("submitForm is not a function:", submitForm);
+        setSubmissionStatus('Error: submitForm is not a function');
+        return;
+      }
+      
+      // Call the submitForm function passed via props
+      console.log("Calling submitForm with data:", formData);
+      const result = submitForm(formData);
+      console.log("submitForm result:", result);
+      
+      // If we're still here (not redirected), show status
+      setSubmissionStatus('Form submitted successfully, but no redirect occurred');
+    } catch (error) {
+      console.error("Error during form submission:", error);
+      setSubmissionStatus(`Error: ${error.message}`);
     }
   };
 
@@ -178,9 +184,9 @@ function BookingForm({ availableTimes, updateTimes }) {
 
       <button type="submit" className="reserve-button">Make Your Reservation</button>
       
-      {confirmationMessage && (
-        <div className="confirmation-message" role="alert">
-          {confirmationMessage}
+      {submissionStatus && (
+        <div className="submission-status" role="alert">
+          {submissionStatus}
         </div>
       )}
     </form>
