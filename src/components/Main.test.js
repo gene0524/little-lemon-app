@@ -2,7 +2,10 @@
 const defaultTimes = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
 // Create mock functions explicitly returning arrays
-const mockFetchAPI = jest.fn(() => [...defaultTimes]);
+const mockFetchAPI = jest.fn((date) => {
+  // Ensure we're returning a copy of the array to avoid test interference
+  return [...defaultTimes];
+});
 
 // Add the mock functions to the window object
 window.fetchAPI = mockFetchAPI;
@@ -31,26 +34,18 @@ describe('Main component reducer functions', () => {
     jest.clearAllMocks();
     
     // Ensure mockFetchAPI returns an array by default
-    mockFetchAPI.mockImplementation(() => [...defaultTimes]);
+    mockFetchAPI.mockImplementation((date) => [...defaultTimes]);
   });
 
   test('initializeTimes returns the expected initial times from fetchAPI', () => {
     // Call the function
     const initialTimes = initializeTimes();
     
-    // Debug output to see what's happening
-    console.log('initialTimes type:', typeof initialTimes);
-    console.log('initialTimes isArray:', Array.isArray(initialTimes));
-    console.log('initialTimes value:', initialTimes);
-    
-    // Check that fetchAPI was called
-    expect(mockFetchAPI).toHaveBeenCalled();
+    // Check that fetchAPI was called with a Date object
+    expect(mockFetchAPI).toHaveBeenCalledWith(expect.any(Date));
     
     // Check the result matches expected format and content
     expect(Array.isArray(initialTimes)).toBe(true);
-    expect(initialTimes.length).toBeGreaterThan(0);
-    
-    // Check it returned what we mocked from fetchAPI
     expect(initialTimes).toEqual(defaultTimes);
   });
 
@@ -58,7 +53,7 @@ describe('Main component reducer functions', () => {
     // Mock a specific return value for a specific date
     const testDate = '2023-01-01';
     const expectedTimes = ['10:00', '11:00', '12:00'];
-    mockFetchAPI.mockReturnValueOnce([...expectedTimes]);
+    mockFetchAPI.mockReturnValueOnce(expectedTimes);
     
     // Create action
     const action = { type: 'UPDATE_TIMES', payload: testDate };
@@ -68,6 +63,12 @@ describe('Main component reducer functions', () => {
     
     // Check that fetchAPI was called with the correct date object
     expect(mockFetchAPI).toHaveBeenCalledWith(expect.any(Date));
+    
+    // Verify the date passed to fetchAPI contains the correct date
+    const dateArg = mockFetchAPI.mock.calls[0][0];
+    expect(dateArg.getFullYear()).toBe(2023);
+    expect(dateArg.getMonth()).toBe(0); // January is 0
+    expect(dateArg.getDate()).toBe(1);
     
     // Check that it returned what we mocked
     expect(newState).toEqual(expectedTimes);
@@ -79,6 +80,10 @@ describe('Main component reducer functions', () => {
     
     const newState = availableTimesReducer(currentState, action);
     
+    // Verify fetchAPI wasn't called for unknown action
+    expect(mockFetchAPI).not.toHaveBeenCalled();
+    
+    // State should remain unchanged
     expect(newState).toEqual(currentState);
   });
 });
