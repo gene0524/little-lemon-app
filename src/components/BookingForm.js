@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function BookingForm({ availableTimes, updateTimes, submitForm }) {
   const [formData, setFormData] = useState({
@@ -11,8 +11,26 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
     phone: ''
   });
   
+  // Track which fields have been touched by the user
+  const [touchedFields, setTouchedFields] = useState({
+    date: false,
+    time: false,
+    guests: false,
+    name: false,
+    email: false,
+    phone: false
+  });
+  
   const [formErrors, setFormErrors] = useState({});
   const [submissionStatus, setSubmissionStatus] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Validate form when form data changes
+  useEffect(() => {
+    const errors = validateForm();
+    setFormErrors(errors);
+    setIsFormValid(Object.keys(errors).length === 0);
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,14 +45,60 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
     }
   };
 
+  // Mark field as touched when it loses focus
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouchedFields(prev => ({
+      ...prev,
+      [name]: true
+    }));
+  };
+
+  // Mark field as touched when user starts interacting
+  const handleFocus = (e) => {
+    const { name } = e.target;
+    if (!touchedFields[name]) {
+      setTouchedFields(prev => ({
+        ...prev,
+        [name]: true
+      }));
+    }
+  };
+
   const validateForm = () => {
     const errors = {};
     
+    // Required field validation
     if (!formData.date) errors.date = "Date is required";
     if (!formData.time) errors.time = "Time is required";
     if (!formData.name) errors.name = "Name is required";
     if (!formData.email) errors.email = "Email is required";
     if (!formData.phone) errors.phone = "Phone is required";
+    
+    // Guest count validation
+    if (formData.guests < 1) errors.guests = "Must be at least 1 guest";
+    if (formData.guests > 10) errors.guests = "Maximum 10 guests allowed";
+    
+    // Date validation - cannot be in the past
+    if (formData.date) {
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to beginning of day for comparison
+      
+      if (selectedDate < today) {
+        errors.date = "Cannot book for past dates";
+      }
+    }
+    
+    // Email format validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    // Phone validation - simple format check
+    if (formData.phone && !/^\d{10,}$/.test(formData.phone.replace(/\D/g, ''))) {
+      errors.phone = "Please enter a valid phone number (at least 10 digits)";
+    }
     
     return errors;
   };
@@ -42,9 +106,15 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // For debugging
-    console.log("Form submission attempted");
-    console.log("Form data:", formData);
+    // Mark all fields as touched on form submission, as we want to show all errors
+    setTouchedFields({
+      date: true,
+      time: true,
+      guests: true,
+      name: true,
+      email: true,
+      phone: true
+    });
     
     // Validate form
     const errors = validateForm();
@@ -79,8 +149,19 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
     }
   };
 
+  // Get today's date in YYYY-MM-DD format for min date attribute
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Only show error when field has been touched and has an error
+  const shouldShowError = (fieldName) => {
+    return touchedFields[fieldName] && formErrors[fieldName];
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="booking-form" aria-label="Reservation Form">
+    <form onSubmit={handleSubmit} className="booking-form" aria-label="Reservation Form" noValidate>
       <div className="form-group">
         <label htmlFor="date">Choose date:</label>
         <input 
@@ -89,10 +170,13 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="date" 
           value={formData.date} 
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          min={getTodayString()}
           required 
-          aria-invalid={formErrors.date ? "true" : "false"}
+          aria-invalid={shouldShowError('date') ? "true" : "false"}
         />
-        {formErrors.date && <span className="error-message">{formErrors.date}</span>}
+        {shouldShowError('date') && <span className="error-message" role="alert">{formErrors.date}</span>}
       </div>
 
       <div className="form-group">
@@ -102,15 +186,17 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="time" 
           value={formData.time} 
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           required
-          aria-invalid={formErrors.time ? "true" : "false"}
+          aria-invalid={shouldShowError('time') ? "true" : "false"}
         >
           <option value="">Select a time</option>
           {availableTimes.map(time => (
             <option key={time} value={time}>{time}</option>
           ))}
         </select>
-        {formErrors.time && <span className="error-message">{formErrors.time}</span>}
+        {shouldShowError('time') && <span className="error-message" role="alert">{formErrors.time}</span>}
       </div>
 
       <div className="form-group">
@@ -123,8 +209,12 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           max="10" 
           value={formData.guests} 
           onChange={handleChange}
-          required 
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          required
+          aria-invalid={shouldShowError('guests') ? "true" : "false"} 
         />
+        {shouldShowError('guests') && <span className="error-message" role="alert">{formErrors.guests}</span>}
       </div>
 
       <div className="form-group">
@@ -137,6 +227,8 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
         >
           <option value="Birthday">Birthday</option>
           <option value="Anniversary">Anniversary</option>
+          <option value="Business">Business</option>
+          <option value="Other">Other</option>
         </select>
       </div>
 
@@ -148,10 +240,14 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="name" 
           value={formData.name} 
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           required 
-          aria-invalid={formErrors.name ? "true" : "false"}
+          minLength="2"
+          maxLength="50"
+          aria-invalid={shouldShowError('name') ? "true" : "false"}
         />
-        {formErrors.name && <span className="error-message">{formErrors.name}</span>}
+        {shouldShowError('name') && <span className="error-message" role="alert">{formErrors.name}</span>}
       </div>
 
       <div className="form-group">
@@ -162,10 +258,13 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="email" 
           value={formData.email} 
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           required 
-          aria-invalid={formErrors.email ? "true" : "false"}
+          pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+          aria-invalid={shouldShowError('email') ? "true" : "false"}
         />
-        {formErrors.email && <span className="error-message">{formErrors.email}</span>}
+        {shouldShowError('email') && <span className="error-message" role="alert">{formErrors.email}</span>}
       </div>
 
       <div className="form-group">
@@ -176,13 +275,22 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="phone" 
           value={formData.phone} 
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           required 
-          aria-invalid={formErrors.phone ? "true" : "false"}
+          pattern="[0-9]{10,}"
+          aria-invalid={shouldShowError('phone') ? "true" : "false"}
+          placeholder="e.g., 1234567890"
         />
-        {formErrors.phone && <span className="error-message">{formErrors.phone}</span>}
+        {shouldShowError('phone') && <span className="error-message" role="alert">{formErrors.phone}</span>}
       </div>
 
-      <button type="submit" className="reserve-button">Make Your Reservation</button>
+      <button 
+        type="submit" 
+        className="reserve-button"
+      >
+        Make Your Reservation
+      </button>
       
       {submissionStatus && (
         <div className="submission-status" role="alert">
