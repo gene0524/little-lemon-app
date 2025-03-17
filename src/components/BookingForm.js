@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 
-function BookingForm() {
+function BookingForm({ availableTimes, updateTimes }) {
   const [formData, setFormData] = useState({
     date: '',
     time: '',
     guests: 1,
-    occasion: 'Birthday'
+    occasion: 'Birthday',
+    name: '',
+    email: '',
+    phone: ''
   });
-
-  const availableTimes = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,6 +17,11 @@ function BookingForm() {
       ...prevState,
       [name]: value
     }));
+
+    // If date changes, update available times
+    if (name === 'date') {
+      updateTimes(value);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -79,7 +85,45 @@ function BookingForm() {
         >
           <option value="Birthday">Birthday</option>
           <option value="Anniversary">Anniversary</option>
+          <option value="Business">Business</option>
+          <option value="Other">Other</option>
         </select>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="name">Your Name:</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          value={formData.name} 
+          onChange={handleChange}
+          required 
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="email">Email:</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          value={formData.email} 
+          onChange={handleChange}
+          required 
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="phone">Phone:</label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone" 
+          value={formData.phone} 
+          onChange={handleChange}
+          required 
+        />
       </div>
 
       <button type="submit" className="reserve-button">Make Your Reservation</button>
