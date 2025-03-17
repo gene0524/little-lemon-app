@@ -4,7 +4,7 @@ import HomePage from './HomePage';
 import BookingPage from './BookingPage';
 import ConfirmedBooking from './ConfirmedBooking';
 
-function Main() {
+function Main({ id }) {
   const navigate = useNavigate();
 
   // Reducer function for available times
@@ -64,7 +64,7 @@ function Main() {
   };
 
   return (
-    <main>
+    <main id={id} tabIndex="-1">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route 

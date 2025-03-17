@@ -161,7 +161,7 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="booking-form" aria-label="Reservation Form" noValidate>
+    <form onSubmit={handleSubmit} className="booking-form" aria-labelledby="booking-form-title" noValidate>
       <div className="form-group">
         <label htmlFor="date">Choose date:</label>
         <input 
@@ -174,9 +174,15 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           onFocus={handleFocus}
           min={getTodayString()}
           required 
+          aria-required="true"
           aria-invalid={shouldShowError('date') ? "true" : "false"}
+          aria-describedby={shouldShowError('date') ? "date-error" : undefined}
         />
-        {shouldShowError('date') && <span className="error-message" role="alert">{formErrors.date}</span>}
+        {shouldShowError('date') && (
+          <span className="error-message" role="alert" id="date-error">
+            {formErrors.date}
+          </span>
+        )}
       </div>
 
       <div className="form-group">
@@ -189,14 +195,20 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           onBlur={handleBlur}
           onFocus={handleFocus}
           required
+          aria-required="true"
           aria-invalid={shouldShowError('time') ? "true" : "false"}
+          aria-describedby={shouldShowError('time') ? "time-error" : undefined}
         >
           <option value="">Select a time</option>
           {availableTimes.map(time => (
             <option key={time} value={time}>{time}</option>
           ))}
         </select>
-        {shouldShowError('time') && <span className="error-message" role="alert">{formErrors.time}</span>}
+        {shouldShowError('time') && (
+          <span className="error-message" role="alert" id="time-error">
+            {formErrors.time}
+          </span>
+        )}
       </div>
 
       <div className="form-group">
@@ -212,9 +224,15 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           onBlur={handleBlur}
           onFocus={handleFocus}
           required
-          aria-invalid={shouldShowError('guests') ? "true" : "false"} 
+          aria-required="true"
+          aria-invalid={shouldShowError('guests') ? "true" : "false"}
+          aria-describedby={shouldShowError('guests') ? "guests-error" : undefined}
         />
-        {shouldShowError('guests') && <span className="error-message" role="alert">{formErrors.guests}</span>}
+        {shouldShowError('guests') && (
+          <span className="error-message" role="alert" id="guests-error">
+            {formErrors.guests}
+          </span>
+        )}
       </div>
 
       <div className="form-group">
@@ -224,6 +242,7 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
           name="occasion" 
           value={formData.occasion} 
           onChange={handleChange}
+          aria-label="Select Occasion"
         >
           <option value="Birthday">Birthday</option>
           <option value="Anniversary">Anniversary</option>
@@ -232,68 +251,91 @@ function BookingForm({ availableTimes, updateTimes, submitForm }) {
         </select>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="name">Your Name:</label>
-        <input 
-          type="text" 
-          id="name" 
-          name="name" 
-          value={formData.name} 
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          required 
-          minLength="2"
-          maxLength="50"
-          aria-invalid={shouldShowError('name') ? "true" : "false"}
-        />
-        {shouldShowError('name') && <span className="error-message" role="alert">{formErrors.name}</span>}
-      </div>
+      <fieldset>
+        <legend>Contact Information</legend>
+        
+        <div className="form-group">
+          <label htmlFor="name">Your Name:</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            value={formData.name} 
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            required 
+            minLength="2"
+            maxLength="50"
+            aria-required="true"
+            aria-invalid={shouldShowError('name') ? "true" : "false"}
+            aria-describedby={shouldShowError('name') ? "name-error" : undefined}
+          />
+          {shouldShowError('name') && (
+            <span className="error-message" role="alert" id="name-error">
+              {formErrors.name}
+            </span>
+          )}
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Email:</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          value={formData.email} 
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          required 
-          pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-          aria-invalid={shouldShowError('email') ? "true" : "false"}
-        />
-        {shouldShowError('email') && <span className="error-message" role="alert">{formErrors.email}</span>}
-      </div>
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            value={formData.email} 
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            required 
+            pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+            aria-required="true"
+            aria-invalid={shouldShowError('email') ? "true" : "false"}
+            aria-describedby={shouldShowError('email') ? "email-error" : undefined}
+          />
+          {shouldShowError('email') && (
+            <span className="error-message" role="alert" id="email-error">
+              {formErrors.email}
+            </span>
+          )}
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="phone">Phone:</label>
-        <input 
-          type="tel" 
-          id="phone" 
-          name="phone" 
-          value={formData.phone} 
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          required 
-          pattern="[0-9]{10,}"
-          aria-invalid={shouldShowError('phone') ? "true" : "false"}
-          placeholder="e.g., 1234567890"
-        />
-        {shouldShowError('phone') && <span className="error-message" role="alert">{formErrors.phone}</span>}
-      </div>
+        <div className="form-group">
+          <label htmlFor="phone">Phone:</label>
+          <input 
+            type="tel" 
+            id="phone" 
+            name="phone" 
+            value={formData.phone} 
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            required 
+            pattern="[0-9]{10,}"
+            aria-required="true"
+            aria-invalid={shouldShowError('phone') ? "true" : "false"}
+            aria-describedby={shouldShowError('phone') ? "phone-error" : undefined}
+            placeholder="e.g., 1234567890"
+          />
+          {shouldShowError('phone') && (
+            <span className="error-message" role="alert" id="phone-error">
+              {formErrors.phone}
+            </span>
+          )}
+        </div>
+      </fieldset>
 
       <button 
         type="submit" 
         className="reserve-button"
+        aria-label="On Click"
       >
         Make Your Reservation
       </button>
       
       {submissionStatus && (
-        <div className="submission-status" role="alert">
+        <div className="submission-status" role="alert" aria-live="assertive">
           {submissionStatus}
         </div>
       )}
